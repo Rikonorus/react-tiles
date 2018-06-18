@@ -1,39 +1,20 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-/* import './App.css'; */
 import './styles.css';
-
-
-/* class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
-    );
-  }
-} */
 
 class Tile extends Component {
   state = {
-    color: 'red',
-    isFlipped: false,
+    color: this.props.color,
+    flipped: false,
     disabled: false
   };
   flipp = () => {
-    this.setState({
-      isFlipped: true
-    });
+    if (!this.state.disabled) {
+      this.props.onClick(this);
+    }
   }
   render() {
     return (
-      <div style={{ backgroundColor: (this.state.isFlipped) ? this.state.color : 'grey' }} onClick={this.flipp} className="box" ></div>
+      <div style={{ backgroundColor: (this.state.flipped) ? this.state.color : 'grey' }} onClick={this.flipp} className="box"></div>
     );
   }
 }
@@ -47,12 +28,12 @@ class PlayField extends Component {
     super();
     this.fillPossibleColors();
     this.state = {
-      tileColors: [...this.shuffleArray(this.possibleColors), ...this.shuffleArray(this.possibleColors)]
+      tileColors: [...this.shuffleArray(this.possibleColors), ...this.shuffleArray(this.possibleColors)],
+      clicketTiles: []
     }
   }
-
   getRandomColor = () => {
-    return `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)} )`;
+    return `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
   }
   fillPossibleColors = () => {
     for (let i = 0; i < Math.floor(this.horizontalMax * this.verticalMax / 2); i++) {
@@ -66,15 +47,35 @@ class PlayField extends Component {
     }
     return array;
   }
-
-  fillArray = () => {
-    for (let i = 0; i < this.horizontalMax / 2; i++) {
-      for (let j = 0; j < this.verticalMax / 2; j++) {
-        this.state.possibleColors.push(this.getRandomColor());
+  checkClickedTile = (tileCurrent) => {
+    if (this.state.clicketTiles.length === 0) {
+      this.setState({
+        clicketTiles: [tileCurrent]
+      })
+      tileCurrent.setState({ flipped: true });
+    } else {
+      const tileClickedPreviously = this.state.clicketTiles[0];
+      const tilesArray = [tileCurrent, tileClickedPreviously];
+      if (tileCurrent !== tileClickedPreviously
+        && tileCurrent.state.color === tileClickedPreviously.state.color) {
+        tilesArray.forEach(tile => {
+          tile.setState({
+            flipped: true,
+            disabled: true,
+          })
+        })
+      } else {
+        tilesArray.forEach(tile => {
+          tile.setState({
+            flipped: false
+          })
+        })
       }
+      this.setState({
+        clicketTiles: []
+      })
     }
   }
-
   render() {
     const table = " ".repeat(this.horizontalMax * this.verticalMax).split("");
     let tileSize = 100;
@@ -89,7 +90,7 @@ class PlayField extends Component {
       margin: 'auto'
     };
     return (<div style={wrapper}>{
-      table.map((e, i) => <Tile color={this.state.tileColors[i % this.state.tileColors.length]} key={i} />)}
+      table.map((e, i) => <Tile color={this.state.tileColors[i % this.state.tileColors.length]} key={i} onClick={this.checkClickedTile} />)}
     </div>);
   }
 }
