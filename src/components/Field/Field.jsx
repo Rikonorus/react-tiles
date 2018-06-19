@@ -1,15 +1,25 @@
 import React, { Component } from 'react';
+import Tile from '../Tile/Tile';
+import Utils from '../../utils';
 
-import './styles.css';
-import Tile from './components/Tile/Tile.jsx';
-import Utils from './Utils';
-
-class PlayField extends Component {
+class Field extends Component {
   horizontalMax = 4;
   verticalMax = 4;
   tilesCount = this.horizontalMax * this.verticalMax;
   constructor() {
     super();
+    const tileSize = 100;
+    const tileGap = 10;
+    this.wrapperStyle = {
+      width: `${this.horizontalMax * tileSize + (this.horizontalMax * tileGap - 1)}px`,
+      display: 'grid',
+      gridGap: `${tileGap}px`,
+      gridTemplateColumns: `repeat(${this.horizontalMax}, ${tileSize}px)`,
+      gridTemplateRows: `repeat(${this.verticalMax}, ${tileSize}px)`,
+      gridAutoFlow: 'column',
+      margin: 'auto'
+    };
+
     const possibleColors = Utils.getPossibleColors(Math.floor(this.tilesCount / 2));
     this.state = {
       tileColors: [...Utils.shuffleArray(possibleColors), ...Utils.shuffleArray(possibleColors)],
@@ -44,23 +54,10 @@ class PlayField extends Component {
     }
   }
   render() {
-    const table = " ".repeat(this.horizontalMax * this.verticalMax).split("");
-    let tileSize = 100;
-    let tileGap = 10;
-    const wrapper = {
-      width: `${this.horizontalMax * tileSize + (this.horizontalMax * tileGap - 1)}px`,
-      display: 'grid',
-      gridGap: `${tileGap}px`,
-      gridTemplateColumns: `repeat(${this.horizontalMax}, ${tileSize}px)`,
-      gridTemplateRows: `repeat(${this.verticalMax}, ${tileSize}px)`,
-      gridAutoFlow: 'column',
-      margin: 'auto'
-    };
-    return (<div style={wrapper}>{
+    const table = " ".repeat(this.tilesCount).split("");
+    return (<div style={this.wrapperStyle}>{
       table.map((e, i) => <Tile color={this.state.tileColors[i % this.state.tileColors.length]} key={i} onClick={this.checkClickedTile} />)}
     </div>);
   }
 }
-
-// export default App;
-export default PlayField;
+export default Field;
