@@ -1,79 +1,46 @@
 import React, { Component } from 'react';
+
 import './styles.css';
-
-class Tile extends Component {
-  state = {
-    color: this.props.color,
-    flipped: false,
-    disabled: false
-  };
-  flipp = () => {
-    if (!this.state.disabled) {
-      this.props.onClick(this);
-    }
-  }
-  render() {
-    return (
-      <div style={{ backgroundColor: (this.state.flipped) ? this.state.color : 'grey' }} onClick={this.flipp} className="box"></div>
-    );
-  }
-}
-
+import Tile from './components/Tile/Tile.jsx';
+import Utils from './Utils';
 
 class PlayField extends Component {
   horizontalMax = 4;
   verticalMax = 4;
-  possibleColors = [];
+  tilesCount = this.horizontalMax * this.verticalMax;
   constructor() {
     super();
-    this.fillPossibleColors();
+    const possibleColors = Utils.getPossibleColors(Math.floor(this.tilesCount / 2));
     this.state = {
-      tileColors: [...this.shuffleArray(this.possibleColors), ...this.shuffleArray(this.possibleColors)],
-      clicketTiles: []
+      tileColors: [...Utils.shuffleArray(possibleColors), ...Utils.shuffleArray(possibleColors)],
+      clickedTiles: [],
     }
-  }
-  getRandomColor = () => {
-    return `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
-  }
-  fillPossibleColors = () => {
-    for (let i = 0; i < Math.floor(this.horizontalMax * this.verticalMax / 2); i++) {
-      this.possibleColors.push(this.getRandomColor());
-    }
-  }
-  shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
   }
   checkClickedTile = (tileCurrent) => {
-    if (this.state.clicketTiles.length === 0) {
+    if (this.state.clickedTiles.length === 0) {
       this.setState({
-        clicketTiles: [tileCurrent]
+        clickedTiles: [tileCurrent]
       })
       tileCurrent.setState({ flipped: true });
-    } else {
-      const tileClickedPreviously = this.state.clicketTiles[0];
-      const tilesArray = [tileCurrent, tileClickedPreviously];
-      if (tileCurrent !== tileClickedPreviously
-        && tileCurrent.state.color === tileClickedPreviously.state.color) {
-        tilesArray.forEach(tile => {
-          tile.setState({
-            flipped: true,
-            disabled: true,
-          })
-        })
-      } else {
-        tilesArray.forEach(tile => {
-          tile.setState({
-            flipped: false
-          })
-        })
-      }
+    } else if (this.state.clickedTiles.length === 1) {
+      const tileClickedPreviously = this.state.clickedTiles[0];
       this.setState({
-        clicketTiles: []
-      })
+        clickedTiles: [...this.state.clickedTiles, tileCurrent]
+      });
+      tileCurrent.setState({ flipped: true });
+      setTimeout(() => {
+        if (!(tileCurrent !== tileClickedPreviously
+          && tileCurrent.state.color === tileClickedPreviously.state.color)) {
+          this.state.clickedTiles.forEach(tile => {
+            tile.setState({
+              flipped: false
+            })
+          })
+        }
+        this.setState({
+          clickedTiles: []
+        })
+      }, 500);
     }
   }
   render() {
